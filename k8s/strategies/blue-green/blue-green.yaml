@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: demo-blue
+  namespace: splitwise
+spec:
+  replicas: 2
+  selector:
+    matchLabels: {app: strategy-demo, version: blue}
+  template:
+    metadata:
+      labels: {app: strategy-demo, version: blue}
+    spec:
+      containers:
+        - name: nginx
+          image: nginx:1.27-alpine
+          ports: [{containerPort: 80}]
+          command: ["/bin/sh","-c"]
+          args: ["echo BLUE release > /usr/share/nginx/html/index.html; nginx -g 'daemon off;'"]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: demo-green
+  namespace: splitwise
+spec:
+  replicas: 2
+  selector:
+    matchLabels: {app: strategy-demo, version: green}
+  template:
+    metadata:
+      labels: {app: strategy-demo, version: green}
+    spec:
+      containers:
+        - name: nginx
+          image: nginx:1.27-alpine
+          ports: [{containerPort: 80}]
+          command: ["/bin/sh","-c"]
+          args: ["echo GREEN release > /usr/share/nginx/html/index.html; nginx -g 'daemon off;'"]
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: app-live
+  namespace: splitwise
+spec:
+  selector: {app: strategy-demo, version: blue}
+  ports:
+    - port: 80
+      targetPort: 80
